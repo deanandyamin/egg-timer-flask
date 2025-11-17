@@ -1,0 +1,18 @@
+{
+  "small": {
+    "main": 460,
+    "flip": 25
+  },
+  "medium": {
+    "main": 490,
+    "flip": 25
+  },
+  "large": {
+    "main": 520,
+    "flip": 30
+  },
+  "loop": {
+    "main": 60,
+    "flip": 0
+  }
+}

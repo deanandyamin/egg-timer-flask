@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🍳 多組計時器控制面板</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 0;
+    }
+
+    .config-panel {
+      margin: 16px 24px;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .config-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .config-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .config-sub {
+      font-size: 13px;
+      color: #4a5568;
+      margin-top: 4px;
+    }
+
+    .btn-save-config {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-save-config:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      gap: 8px;
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .cfg-label {
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .cfg-input {
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      text-align: center;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .cfg-input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .cfg-static-text {
+      font-size: 12px;
+      color: #4a5568;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .timers-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 24px 24px;
+      align-items: stretch;
+    }
+
+    .timer-card {
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .timer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .timer-card.pinned {
+      border-color: #ffd700;
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+      order: -1;
+    }
+
+    .timer-card.small-card { 
+      background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); 
+      color: #000000;
+    }
+    
+    .timer-card.small-card .timer-title,
+    .timer-card.small-card .time-value-main,
+    .timer-card.small-card .time-value-sub {
+      color: #000000;
+    }
+    
+    .timer-card.small-card button {
+      color: #000000;
+    }
+    .timer-card.medium-card { 
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      color: #000000;
+    }
+    
+    .timer-card.medium-card .timer-title,
+    .timer-card.medium-card .time-value-main,
+    .timer-card.medium-card .time-value-sub {
+      color: #000000;
+    }
+    
+    .timer-card.medium-card button {
+      color: #000000;
+    }
+    
+    .timer-card.large-card { 
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      color: #000000;
+    }
+    
+    .timer-card.large-card .timer-title,
+    .timer-card.large-card .time-value-main,
+    .timer-card.large-card .time-value-sub {
+      color: #000000;
+    }
+    
+    .timer-card.large-card button {
+      color: #000000;
+    }
+    
+    .timer-card.loop { 
+      background: linear-gradient(135deg, #d6e4ff 0%, #e8f0ff 100%);
+      color: #000000;
+    }
+    
+    .timer-card.loop .timer-title,
+    .timer-card.loop .time-value-main,
+    .timer-card.loop .time-value-sub {
+      color: #000000;
+    }
+    
+    .timer-card.loop button {
+      color: #000000;
+    }
+
+    .timer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .timer-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+
+
+    .pin-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pin-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .pin-button.pinned {
+      background: #ffd700;
+      border-color: #ffd700;
+      color: #2d3748;
+    }
+
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .time-value-main {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0;
+      color: #2d3748;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+
+
+    .time-value-sub {
+      font-size: 18px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+
+
+    .buttons-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      font-size: 16px;
+      padding: 10px 24px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    }
+
+    .btn-start:hover {
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+    }
+
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.8);
+      color: #4a5568;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-reset:hover {
+      background: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .panel {
+        max-width: 100%;
+      }
+      
+      .timer-card {
+        padding: 16px;
+      }
+      
+      .time-value-main {
+        font-size: 36px;
+      }
+      
+      .config-grid {
+        grid-template-columns: 60px 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="title-block">
+        <div class="title-icon">🍳</div>
+        <div>
+          <h1>多組計時器控制面板</h1>
+          <p class="subtitle">小顆・中顆・大顆・循環，狀態</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <div class="config-header">
+        <div>
+          <div class="config-title">計時預設（秒）</div>
+          <div class="config-sub">請儲存後 下次會開始套用</div>
+        </div>
+        <button class="btn-save-config" onclick="saveConfig()">儲存設定</button>
+      </div>
+      <div class="config-grid">
+        <span class="cfg-label">小顆</span>
+        <input id="cfg_small_main" type="number" class="cfg-input" value="{{ config.small.main }}">
+        <input id="cfg_small_flip" type="number" class="cfg-input" value="{{ config.small.flip }}">
+
+        <span class="cfg-label">中顆</span>
+        <input id="cfg_medium_main" type="number" class="cfg-input" value="{{ config.medium.main }}">
+        <input id="cfg_medium_flip" type="number" class="cfg-input" value="{{ config.medium.flip }}">
+
+        <span class="cfg-label">大顆</span>
+        <input id="cfg_large_main" type="number" class="cfg-input" value="{{ config.large.main }}">
+        <input id="cfg_large_flip" type="number" class="cfg-input" value="{{ config.large.flip }}">
+
+        <span class="cfg-label">循環</span>
+        <input id="cfg_loop_main" type="number" class="cfg-input" value="{{ config.loop.main }}">
+       
+      </div>
+    </div>
+
+    <div class="timers-grid" id="timers">
+      <div class="timer-card small-card" data-timer="small">
+        <div class="timer-header">
+          <div class="timer-title">小顆計時器</div>
+          <button class="pin-button" onclick="togglePin('small')" title="至頂">
+            <span id="pin-small">📌</span>
+          </button>
+        </div>
+        <div class="time-block">
+          <div>主計時：<span id="small_main" class="time-value-main">0:00</span></div>
+          <div>翻面：<span id="small_flip" class="time-value-sub">0</span></div>
+        </div>
+        <div class="buttons-row">
+          <button class="btn-start" onclick="sendAction('small','start')">開始</button>
+          <button class="btn-reset" onclick="sendAction('small','reset')">重置</button>
+        </div>
+      </div>
+
+      <div class="timer-card medium-card" data-timer="medium">
+        <div class="timer-header">
+          <div class="timer-title">中顆計時器</div>
+          <button class="pin-button" onclick="togglePin('medium')" title="至頂">
+            <span id="pin-medium">📌</span>
+          </button>
+        </div>
+        <div class="time-block">
+          <div>主計時：<span id="medium_main" class="time-value-main">0:00</span></div>
+          <div>翻面：<span id="medium_flip" class="time-value-sub">0</span></div>
+        </div>
+        <div class="buttons-row">
+          <button class="btn-start" onclick="sendAction('medium','start')">開始</button>
+          <button class="btn-reset" onclick="sendAction('medium','reset')">重置</button>
+        </div>
+      </div>
+
+      <div class="timer-card large-card" data-timer="large">
+        <div class="timer-header">
+          <div class="timer-title">大顆計時器</div>
+          <button class="pin-button" onclick="togglePin('large')" title="至頂">
+            <span id="pin-large">📌</span>
+          </button>
+        </div>
+        <div class="time-block">
+          <div>主計時：<span id="large_main" class="time-value-main">0:00</span></div>
+          <div>翻面：<span id="large_flip" class="time-value-sub">0</span></div>
+        </div>
+        <div class="buttons-row">
+          <button class="btn-start" onclick="sendAction('large','start')">開始</button>
+          <button class="btn-reset" onclick="sendAction('large','reset')">重置</button>
+        </div>
+      </div>
+
+      <div class="timer-card loop" data-timer="loop">
+        <div class="timer-header">
+          <div class="timer-title">循環計時器</div>
+          <button class="pin-button" onclick="togglePin('loop')" title="至頂">
+            <span id="pin-loop">📌</span>
+          </button>
+        </div>
+        <div class="time-block">
+          <div>剩餘：<span id="loop_main" class="time-value-main">0:00</span></div>
+        </div>
+        <div class="buttons-row">
+          <button class="btn-start" onclick="sendAction('loop','start')">開始</button>
+          <button class="btn-reset" onclick="sendAction('loop','reset')">重置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatTime(sec){
+      if(sec==null||isNaN(sec))return '0:00';
+      if(sec<0)sec=0;
+      const m=Math.floor(sec/60);
+      const s=sec%60;
+      return m+':' + s.toString().padStart(2,'0');
+    }
+
+    let lastPlayedSound=null;
+    let pinnedTimers = JSON.parse(localStorage.getItem('pinnedTimers') || '[]');
+
+    // 初始化至頂狀態
+    function initializePins() {
+      pinnedTimers.forEach(timer => {
+        const card = document.querySelector(`[data-timer="${timer}"]`);
+        const button = document.querySelector(`[data-timer="${timer}"] .pin-button`);
+        if (card && button) {
+          card.classList.add('pinned');
+          button.classList.add('pinned');
+        }
+      });
+    }
+
+    // 切換至頂狀態
+    function togglePin(timerType) {
+      const card = document.querySelector(`[data-timer="${timerType}"]`);
+      const button = card.querySelector('.pin-button');
+      
+      if (pinnedTimers.includes(timerType)) {
+        // 取消至頂
+        pinnedTimers = pinnedTimers.filter(t => t !== timerType);
+        card.classList.remove('pinned');
+        button.classList.remove('pinned');
+      } else {
+        // 添加至頂
+        pinnedTimers.push(timerType);
+        card.classList.add('pinned');
+        button.classList.add('pinned');
+      }
+      
+      // 保存到本地存儲
+      localStorage.setItem('pinnedTimers', JSON.stringify(pinnedTimers));
+      
+      // 重新排序計時器
+      reorderTimers();
+    }
+
+    // 重新排序計時器（至頂的在前）
+    function reorderTimers() {
+      const timersGrid = document.getElementById('timers');
+      const timerCards = Array.from(timersGrid.children);
+      
+      // 先移除所有子元素
+      timerCards.forEach(card => timersGrid.removeChild(card));
+      
+      // 按照至頂狀態排序
+      const pinnedCards = timerCards.filter(card => 
+        pinnedTimers.includes(card.dataset.timer)
+      );
+      const unpinnedCards = timerCards.filter(card => 
+        !pinnedTimers.includes(card.dataset.timer)
+      );
+      
+      // 先添加至頂的計時器
+      pinnedCards.forEach(card => timersGrid.appendChild(card));
+      // 再添加未至頂的計時器
+      unpinnedCards.forEach(card => timersGrid.appendChild(card));
+    }
+
+    async function updateStatus(){
+      const res=await fetch('/status');
+      const data=await res.json();
+      document.getElementById('small_main').textContent=formatTime(data.small.remain);
+      document.getElementById('medium_main').textContent=formatTime(data.medium.remain);
+      document.getElementById('large_main').textContent=formatTime(data.large.remain);
+      document.getElementById('loop_main').textContent=formatTime(data.loop);
+      document.getElementById('small_flip').textContent=data.small.flip_remain;
+      document.getElementById('medium_flip').textContent=data.medium.flip_remain;
+      document.getElementById('large_flip').textContent=data.large.flip_remain;
+      const played = new Set();
+      data.sounds.forEach(sound=>{
+        if(!sound)return;
+        if(played.has(sound))return;
+        played.add(sound);
+        new Audio(`/static/${sound}`).play();
+      });
+    }
+
+    async function sendAction(size,act){
+      const res=await fetch('/action',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({size,act})
+      });
+      const data=await res.json();
+      if(data.play_now){
+        new Audio(`/static/${data.play_now}`).play();
+      }
+    }
+
+    async function saveConfig(){
+      const cfg={
+        small:{
+          main:parseInt(document.getElementById('cfg_small_main').value||'0',10),
+          flip:parseInt(document.getElementById('cfg_small_flip').value||'0',10),
+        },
+        medium:{
+          main:parseInt(document.getElementById('cfg_medium_main').value||'0',10),
+          flip:parseInt(document.getElementById('cfg_medium_flip').value||'0',10),
+        },
+        large:{
+          main:parseInt(document.getElementById('cfg_large_main').value||'0',10),
+          flip:parseInt(document.getElementById('cfg_large_flip').value||'0',10),
+        },
+        loop:{
+          main:parseInt(document.getElementById('cfg_loop_main').value||'0',10),
+          flip:0,
+        },
+      };
+
+      const res=await fetch('/setcfg',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(cfg),
+      });
+      const data=await res.json();
+      if(data.ok){
+        alert('設定已儲存');
+      }else{
+        alert('儲存失敗');
+      }
+    }
+
+    // 頁面載入時初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      initializePins();
+      reorderTimers();
+    });
+
+    setInterval(updateStatus,1000);
+  </script>
+</body>
+</html>
